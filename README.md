@@ -1,2 +1,2 @@
-# Blog_app
+# Blog_App
 
