@@ -1,8 +1,8 @@
 from flaskblog.models import User,Post
-from flask import render_template , url_for ,flash, redirect
-from flaskblog.forms import RegisterForm, LoginForm 
+from flask import render_template , url_for ,flash, redirect ,request
+from flaskblog.forms import RegisterForm, LoginForm ,UpdateForm
 from flaskblog import app, bcrypt ,db
-from flask_login import login_user ,logout_user ,current_user
+from flask_login import login_user ,logout_user ,current_user, login_required
 
 posts = [{
     "author":"Pradeep Raj",
@@ -59,7 +59,8 @@ def login():
         user = User.query.filter_by(email= form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data) :
             login_user(user,remember=form.remember.data)
-            return redirect(url_for('home'))
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
             flash(f"Log In Unsuccessfull, check your Email and Password","danger")
 
@@ -70,3 +71,19 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+@app.route("/account", methods =["GET","POST"])
+@login_required
+def account():
+    form=UpdateForm()
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        db.session.commit()
+        flash('Your account has been updated !','success')
+        return redirect(url_for('account'))
+    elif request.method == 'GET':
+        form.username.data= current_user.username
+        form.email.data= current_user.email
+    image_file = url_for('static', filename='profile_pic/'+ current_user.img_file)
+    return render_template('account.html',title='Account',image_file=image_file ,form=form)

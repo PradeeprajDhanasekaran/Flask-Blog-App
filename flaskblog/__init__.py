@@ -11,4 +11,6 @@ db= SQLAlchemy(app)
 app.app_context().push()
 bcrypt = Bcrypt(app)
 loginmanager= LoginManager(app)
+loginmanager.login_view = 'login'
+loginmanager.login_message_category='info'
 from flaskblog import routes
