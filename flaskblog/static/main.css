@@ -28,8 +28,9 @@ body {
     background: #ffffff;
     padding: 10px 20px;
     border: 1px solid #dddddd;
-    border-radius: 3px;
+    border-radius: 10px;
     margin-bottom: 20px;
+    box-shadow:  0 0 10px #0000001a;
   }
   
   .article-title {
