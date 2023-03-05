@@ -1,2 +1,2 @@
-# Blog_App
+# Blog_App using Flask and python
 
