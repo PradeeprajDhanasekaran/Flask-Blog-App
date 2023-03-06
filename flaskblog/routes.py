@@ -1,8 +1,11 @@
 from flaskblog.models import User,Post
 from flask import render_template , url_for ,flash, redirect ,request
-from flaskblog.forms import RegisterForm, LoginForm ,UpdateForm
+from flaskblog.forms import RegisterForm, LoginForm ,UpdateForm,PostForm
 from flaskblog import app, bcrypt ,db
 from flask_login import login_user ,logout_user ,current_user, login_required
+from secrets import token_hex
+from PIL import Image
+import os
 
 posts = [{
     "author":"Pradeep Raj",
@@ -72,11 +75,26 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+def save_picture(picture):
+    random_hex = token_hex(8)
+    _ , ext_ = os.path.splitext(picture.filename)
+    file_name = random_hex + ext_
+    full_path = os.path.join(app.root_path , 'static/profile_pic' , file_name)
+    size =(125,125)
+    img = Image.open(picture)
+    img.thumbnail(size)
+    img.save(full_path)
+    return file_name
+   
+
 @app.route("/account", methods =["GET","POST"])
 @login_required
 def account():
     form=UpdateForm()
     if form.validate_on_submit():
+        if form.picture.data :
+            current_user.img_file = save_picture(form.picture.data)
+
         current_user.username = form.username.data
         current_user.email = form.email.data
         db.session.commit()
@@ -87,3 +105,11 @@ def account():
         form.email.data= current_user.email
     image_file = url_for('static', filename='profile_pic/'+ current_user.img_file)
     return render_template('account.html',title='Account',image_file=image_file ,form=form)
+
+
+@app.route("/post/new")
+@login_required
+def new_post():
+    
+    form = PostForm()
+    return render_template('create_post.html',title='New Post',form=form)
